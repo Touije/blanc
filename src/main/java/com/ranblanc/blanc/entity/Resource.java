@@ -20,7 +20,16 @@ public class Resource {
 
     @Column(nullable = false)
     private String type;
+    
+    @Column(length = 1000)
+    private String description;
+    
+    @Column(nullable = false)
+    private Boolean disponible = true;
+    
+    @Column
+    private String localisation;
 
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reservation> reservations;
-} 
+}

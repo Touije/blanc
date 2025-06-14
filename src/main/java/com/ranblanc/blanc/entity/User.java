@@ -1,4 +1,4 @@
- package com.ranblanc.blanc.entity;
+package com.ranblanc.blanc.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,6 +19,12 @@ public class User {
 
     @Column(nullable = false)
     private String nom;
+    
+    @Column(nullable = true)
+    private String prenom;
+    
+    @Column(nullable = true)
+    private String telephone;
 
     @Column(nullable = false, unique = true)
     private String email;

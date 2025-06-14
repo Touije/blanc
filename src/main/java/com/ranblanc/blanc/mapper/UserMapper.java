@@ -24,6 +24,8 @@ public class UserMapper {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
         dto.setNom(user.getNom());
+        dto.setPrenom(user.getPrenom());
+        dto.setTelephone(user.getTelephone());
         dto.setEmail(user.getEmail());
         // Le mot de passe n'est pas copié pour des raisons de sécurité
         return dto;
@@ -41,6 +43,8 @@ public class UserMapper {
         return User.builder()
                 .id(dto.getId())
                 .nom(dto.getNom())
+                .prenom(dto.getPrenom())
+                .telephone(dto.getTelephone())
                 .email(dto.getEmail())
                 .password(dto.getPassword()) // Ajout du mot de passe
                 .build();
@@ -58,6 +62,8 @@ public class UserMapper {
         return User.builder()
                 .id(dto.getId())
                 .nom(dto.getNom())
+                .prenom(dto.getPrenom())
+                .telephone(dto.getTelephone())
                 .email(dto.getEmail())
                 .password(dto.getPassword())
                 .roles(role)

@@ -24,6 +24,9 @@ public class ResourceMapper {
         dto.setId(resource.getId());
         dto.setNom(resource.getNom());
         dto.setType(resource.getType());
+        dto.setDescription(resource.getDescription());
+        dto.setDisponible(resource.getDisponible());
+        dto.setLocalisation(resource.getLocalisation());
         return dto;
     }
 
@@ -39,6 +42,9 @@ public class ResourceMapper {
                 .id(dto.getId())
                 .nom(dto.getNom())
                 .type(dto.getType())
+                .description(dto.getDescription())
+                .disponible(dto.getDisponible())
+                .localisation(dto.getLocalisation())
                 .build();
     }
 }

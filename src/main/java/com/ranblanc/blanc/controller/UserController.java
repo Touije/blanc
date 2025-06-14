@@ -120,30 +120,55 @@ public class UserController {
     /**
      * Endpoint de connexion pour les utilisateurs.
      * Accessible à tous (voir SecurityConfig).
-     * Note: L'authentification réelle est gérée par Spring Security.
+     * Si l'utilisateur n'existe pas, il est automatiquement inscrit.
      * 
      * @param userDTO Les identifiants de connexion (email et mot de passe)
-     * @return Un message de succès ou d'erreur
+     * @return Un message de succès ou d'erreur avec les informations de l'utilisateur
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDTO userDTO) {
         try {
-            // Création d'un token d'authentification (sera traité par Spring Security)
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userDTO.getEmail(), userDTO.getPassword());
-            // L'authentification sera gérée par Spring Security automatiquement
-
-            // Récupérer les informations de l'utilisateur connecté
-            Optional<UserDTO> user = userService.getUserByEmail(userDTO.getEmail());
-            if (user.isPresent()) {
+            // Vérifier si l'utilisateur existe
+            Optional<UserDTO> existingUser = userService.getUserByEmail(userDTO.getEmail());
+            
+            if (existingUser.isPresent()) {
+                // Utilisateur existe, tentative de connexion
+                try {
+                    // Création d'un token d'authentification (sera traité par Spring Security)
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(
+                            userDTO.getEmail(), userDTO.getPassword());
+                    // L'authentification sera gérée par Spring Security automatiquement
+                    
+                    return ResponseEntity.ok(Map.of(
+                            "message", "Connexion réussie",
+                            "user", existingUser.get(),
+                            "isNewUser", false
+                    ));
+                } catch (AuthenticationException e) {
+                    return ResponseEntity.status(401).body("Identifiants invalides");
+                }
+            } else {
+                // Utilisateur n'existe pas, inscription automatique
+                if (userDTO.getNom() == null || userDTO.getNom().trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body("Le nom est obligatoire pour l'inscription");
+                }
+                
+                // Utilisation du UserMapper avec le rôle CLIENT
+                User user = UserMapper.toEntity(userDTO, "CLIENT");
+                // Encodage du mot de passe
+                user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+                
+                User savedUser = userService.saveUser(user);
+                UserDTO savedUserDTO = UserMapper.toDTO(savedUser);
+                
                 return ResponseEntity.ok(Map.of(
-                        "message", "Connexion réussie",
-                        "user", user.get()
+                        "message", "Inscription et connexion réussies",
+                        "user", savedUserDTO,
+                        "isNewUser", true
                 ));
             }
-            return ResponseEntity.ok("Connexion réussie");
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Identifiants invalides");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erreur lors de la connexion/inscription: " + e.getMessage());
         }
     }
 }

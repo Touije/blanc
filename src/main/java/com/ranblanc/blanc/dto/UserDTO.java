@@ -12,6 +12,12 @@ public class UserDTO {
     @NotBlank(message = "Le nom est obligatoire")
     @Size(min = 2, max = 100, message = "Le nom doit contenir entre 2 et 100 caractères")
     private String nom;
+    
+    @Size(max = 100, message = "Le prénom doit contenir au maximum 100 caractères")
+    private String prenom;
+    
+    @Size(max = 20, message = "Le numéro de téléphone doit contenir au maximum 20 caractères")
+    private String telephone;
 
     @NotBlank(message = "L'email est obligatoire")
     @Email(message = "Format d'email invalide")
