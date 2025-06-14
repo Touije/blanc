@@ -2,12 +2,14 @@
 
 Ce document liste tous les endpoints API disponibles pour l'intégration frontend.
 
+Tous les endpoints commencent par la base URL : `http://localhost:8080`
+
 ## Authentification
 
 ### Inscription
 
 ```
-POST /api/users/register
+POST http://localhost:8080/api/users/register
 ```
 
 **Corps de la requête:**
@@ -38,7 +40,7 @@ POST /api/users/register
 ### Connexion
 
 ```
-POST /api/users/login
+POST http://localhost:8080/api/users/login
 ```
 
 **Corps de la requête:**
@@ -84,19 +86,19 @@ POST /api/users/login
 ### Récupérer tous les utilisateurs
 
 ```
-GET /api/users
+GET http://localhost:8080/api/users
 ```
 
 ### Récupérer un utilisateur par ID
 
 ```
-GET /api/users/{id}
+GET http://localhost:8080/api/users/{id}
 ```
 
 ### Créer un utilisateur
 
 ```
-POST /api/users
+POST http://localhost:8080/api/users
 ```
 
 **Corps de la requête:**
@@ -113,13 +115,13 @@ POST /api/users
 ### Supprimer un utilisateur
 
 ```
-DELETE /api/users/{id}
+DELETE http://localhost:8080/api/users/{id}
 ```
 
 ### Mettre à jour le rôle d'un utilisateur
 
 ```
-PUT /api/admin/users/{id}/role
+PUT http://localhost:8080/api/admin/users/{id}/role
 ```
 
 **Corps de la requête:**
@@ -134,19 +136,19 @@ PUT /api/admin/users/{id}/role
 ### Récupérer toutes les ressources
 
 ```
-GET /api/resources
+GET http://localhost:8080/api/resources
 ```
 
 ### Récupérer une ressource par ID
 
 ```
-GET /api/resources/{id}
+GET http://localhost:8080/api/resources/{id}
 ```
 
 ### Créer une ressource
 
 ```
-POST /api/resources
+POST http://localhost:8080/api/resources
 ```
 
 **Corps de la requête:**
@@ -163,7 +165,7 @@ POST /api/resources
 ### Mettre à jour une ressource
 
 ```
-PUT /api/resources/{id}
+PUT http://localhost:8080/api/resources/{id}
 ```
 
 **Corps de la requête:**
@@ -180,7 +182,7 @@ PUT /api/resources/{id}
 ### Supprimer une ressource
 
 ```
-DELETE /api/resources/{id}
+DELETE http://localhost:8080/api/resources/{id}
 ```
 
 ## Gestion des Réservations (Admin et Client)
@@ -188,19 +190,19 @@ DELETE /api/resources/{id}
 ### Récupérer toutes les réservations
 
 ```
-GET /api/reservations
+GET http://localhost:8080/api/reservations
 ```
 
 ### Récupérer une réservation par ID
 
 ```
-GET /api/reservations/{id}
+GET http://localhost:8080/api/reservations/{id}
 ```
 
 ### Créer une réservation
 
 ```
-POST /api/reservations
+POST http://localhost:8080/api/reservations
 ```
 
 **Corps de la requête:**
@@ -217,7 +219,7 @@ POST /api/reservations
 ### Mettre à jour une réservation
 
 ```
-PUT /api/reservations/{id}
+PUT http://localhost:8080/api/reservations/{id}
 ```
 
 **Corps de la requête:**
@@ -232,13 +234,13 @@ PUT /api/reservations/{id}
 ### Annuler une réservation
 
 ```
-PUT /api/reservations/{id}/cancel
+PUT http://localhost:8080/api/reservations/{id}/cancel
 ```
 
 ### Supprimer une réservation
 
 ```
-DELETE /api/reservations/{id}
+DELETE http://localhost:8080/api/reservations/{id}
 ```
 
 ## Tableau de bord Admin
@@ -246,7 +248,7 @@ DELETE /api/reservations/{id}
 ### Récupérer les statistiques du tableau de bord
 
 ```
-GET /api/admin/dashboard
+GET http://localhost:8080/api/admin/dashboard
 ```
 
 **Réponse:**
@@ -260,8 +262,8 @@ GET /api/admin/dashboard
 
 ## Notes d'utilisation
 
-1. Tous les endpoints nécessitent une authentification, sauf `/api/users/register` et `/api/users/login`.
-2. Les endpoints `/api/users/**` et `/api/resources/**` sont accessibles uniquement aux administrateurs.
-3. Les endpoints `/api/reservations/**` sont accessibles aux administrateurs et aux clients.
-4. Les endpoints `/api/admin/**` sont accessibles uniquement aux administrateurs.
+1. Tous les endpoints nécessitent une authentification, sauf `http://localhost:8080/api/users/register` et `http://localhost:8080/api/users/login`.
+2. Les endpoints `http://localhost:8080/api/users/**` et `http://localhost:8080/api/resources/**` sont accessibles uniquement aux administrateurs.
+3. Les endpoints `http://localhost:8080/api/reservations/**` sont accessibles aux administrateurs et aux clients.
+4. Les endpoints `http://localhost:8080/api/admin/**` sont accessibles uniquement aux administrateurs.
 5. L'authentification se fait via Basic Auth ou via le formulaire de connexion.
