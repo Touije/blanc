@@ -2,15 +2,20 @@ package com.ranblanc.blanc.controller;
 
 
 import com.ranblanc.blanc.dto.ReservationDTO;
+import com.ranblanc.blanc.dto.UserDTO;
+import com.ranblanc.blanc.security.CustomUserDetails;
 import com.ranblanc.blanc.service.ReservationService;
+import com.ranblanc.blanc.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Contrôleur REST pour gérer les opérations liées aux réservations.
@@ -25,6 +30,23 @@ public class ReservationController {
      */
     @Autowired
     private ReservationService reservationService;
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<List<ReservationDTO>> getMyReservations(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String email = userDetails.getUsername(); // L'email est utilisé comme username
+
+        Optional<UserDTO> userOpt = userService.getUserByEmail(email);
+        if (userOpt.isPresent()) {
+            List<ReservationDTO> reservations = reservationService.getReservationsByUser(userOpt.get().getId());
+            return ResponseEntity.ok(reservations);
+        }
+        return ResponseEntity.notFound().build();
+    }
 
     /**
      * Crée une nouvelle réservation.

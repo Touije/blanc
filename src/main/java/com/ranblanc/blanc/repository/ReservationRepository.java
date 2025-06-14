@@ -67,4 +67,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * @return true s'il existe des réservations pour cette ressource, false sinon
      */
     boolean existsByResource(Resource resource);
+    long countByStatut(String statut);
 }

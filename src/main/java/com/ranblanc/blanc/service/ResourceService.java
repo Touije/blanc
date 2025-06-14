@@ -91,4 +91,8 @@ public class ResourceService {
         // Supprime la ressource
         resourceRepository.deleteById(id);
     }
+
+    public long getResourceCount() {
+        return resourceRepository.count();
+    }
 }

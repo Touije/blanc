@@ -172,4 +172,8 @@ public class ReservationService {
             }
         }
     }
+
+    public long getReservationCountByStatus(String status) {
+        return reservationRepository.countByStatut(status);
+    }
 }

@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 
 /**
@@ -31,6 +33,8 @@ public class UserController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+
 
     /**
      * Crée un nouvel utilisateur.
@@ -98,14 +102,19 @@ public class UserController {
         if (userService.getUserByEmail(userDTO.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email déjà utilisé");
         }
-        
+
         // Utilisation du UserMapper avec le rôle CLIENT
         User user = UserMapper.toEntity(userDTO, "CLIENT");
         // Encodage du mot de passe
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        
-        userService.saveUser(user);
-        return ResponseEntity.ok("Inscription réussie");
+
+        User savedUser = userService.saveUser(user);
+        UserDTO savedUserDTO = UserMapper.toDTO(savedUser);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Inscription réussie",
+                "user", savedUserDTO
+        ));
     }
 
     /**
@@ -123,6 +132,15 @@ public class UserController {
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userDTO.getEmail(), userDTO.getPassword());
             // L'authentification sera gérée par Spring Security automatiquement
+
+            // Récupérer les informations de l'utilisateur connecté
+            Optional<UserDTO> user = userService.getUserByEmail(userDTO.getEmail());
+            if (user.isPresent()) {
+                return ResponseEntity.ok(Map.of(
+                        "message", "Connexion réussie",
+                        "user", user.get()
+                ));
+            }
             return ResponseEntity.ok("Connexion réussie");
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Identifiants invalides");

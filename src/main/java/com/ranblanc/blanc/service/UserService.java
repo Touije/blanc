@@ -92,4 +92,20 @@ public class UserService {
     public User saveUser(User user) {
         return userRepository.save(user);
     }
+
+
+    public long getUserCount() {
+        return userRepository.count();
+    }
+
+    public boolean updateUserRole(Long id, String role) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setRoles(role);
+            userRepository.save(user);
+            return true;
+        }
+        return false;
+    }
 }
