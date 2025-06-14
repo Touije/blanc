@@ -1,208 +1,106 @@
 # RanBlanc – Système de Réservation de Ressources
 
-## 📝 Description Générale
+Application de gestion de réservation de ressources développée avec Spring Boot.
 
-**RanBlanc** est une plateforme de réservation de ressources partagées (salles, voitures, etc.) via une API REST sécurisée. Elle permet à plusieurs utilisateurs de réserver des ressources de manière concurrente, tout en évitant les conflits et les doubles réservations.
+## Fonctionnalités
 
----
+- Authentification et autorisation avec Spring Security
+- Gestion des utilisateurs (ADMIN, CLIENT)
+- Gestion des ressources
+- Réservation de ressources avec gestion des conflits
+- Nettoyage automatique des réservations expirées
+- Documentation API avec Swagger/OpenAPI
 
-## 👥 Acteurs & Cas d'Utilisation
+## Technologies utilisées
 
-### Acteurs principaux
-- **Administrateur** :
-    - Gère les utilisateurs, les ressources, visualise toutes les réservations.
-- **Client** :
-    - S'inscrit, se connecte, réserve une ressource, consulte/annule ses réservations.
+- Java 17
+- Spring Boot 3.5.0
+- Spring Security
+- Spring Data JPA
+- MySQL
+- Lombok
+- Swagger/OpenAPI
 
-### Cas d'utilisation (User Stories)
-- Un client peut s'inscrire et se connecter.
-- Un client peut réserver une ressource disponible pour une période donnée.
-- Un client ne peut pas réserver une ressource déjà prise sur le même créneau.
-- Un administrateur peut ajouter/supprimer des ressources et des utilisateurs.
-- Un administrateur peut voir toutes les réservations.
-- Les réservations expirées sont automatiquement nettoyées.
-
----
-
-## 🧱 Architecture & Diagramme de Classe
-
-### Structure des packages
+## Structure du projet
 
 ```
-src/main/java/com/ranblanc/
-├── config/         # Configuration Swagger/OpenAPI
-├── controller/     # Contrôleurs REST
-├── dto/            # Objets de transfert de données
-├── entity/         # Entités JPA (User, Resource, Reservation)
-├── exception/      # Gestion globale des exceptions
-├── mapper/         # Mapping entité <-> DTO
-├── repository/     # Accès aux données (JPA)
-├── scheduler/      # Tâches planifiées (nettoyage)
-├── security/       # Sécurité (Spring Security, UserDetails)
-├── service/        # Logique métier
-└── DataInitializer.java # Insertion de données de base
+src/main/java/com/ranblanc/blanc/
+├── config/           # Configuration (Swagger, etc.)
+├── controller/       # Contrôleurs REST
+├── dto/              # Objets de transfert de données
+├── entity/           # Entités JPA
+├── mapper/           # Convertisseurs entité <-> DTO
+├── repository/       # Repositories JPA
+├── scheduler/        # Tâches planifiées
+├── security/         # Configuration de sécurité et JWT
+└── service/          # Services métier
 ```
 
-### Diagramme de classe (PlantUML)
+## API Endpoints
 
-```plantuml
-@startuml
-class User {
-  Long id
-  String nom
-  String email
-  String password
-  String roles
-  List<Reservation> reservations
-}
+### Utilisateurs
 
-class Resource {
-  Long id
-  String nom
-  String type
-  List<Reservation> reservations
-}
+- `GET /api/users` - Liste des utilisateurs (ADMIN)
+- `GET /api/users/{id}` - Détails d'un utilisateur (ADMIN)
+- `POST /api/users` - Création d'un utilisateur (ADMIN)
+- `DELETE /api/users/{id}` - Suppression d'un utilisateur (ADMIN)
 
-class Reservation {
-  Long id
-  User user
-  Resource resource
-  LocalDateTime dateDebut
-  LocalDateTime dateFin
-  String statut
-}
+### Ressources
 
-User "1" -- "0..*" Reservation : possède >
-Resource "1" -- "0..*" Reservation : concerne >
-@enduml
-```
+- `GET /api/resources` - Liste des ressources (ADMIN, CLIENT)
+- `GET /api/resources/{id}` - Détails d'une ressource (ADMIN, CLIENT)
+- `POST /api/resources` - Création d'une ressource (ADMIN)
+- `DELETE /api/resources/{id}` - Suppression d'une ressource (ADMIN)
 
----
+### Réservations
 
-## 🚀 Fonctionnalités principales
+- `GET /api/reservations` - Liste des réservations (ADMIN)
+- `GET /api/reservations/{id}` - Détails d'une réservation (ADMIN, CLIENT propriétaire)
+- `GET /api/reservations/user/{userId}` - Réservations d'un utilisateur (ADMIN, CLIENT propriétaire)
+- `GET /api/reservations/resource/{resourceId}` - Réservations d'une ressource (ADMIN, CLIENT)
+- `POST /api/reservations` - Création d'une réservation (ADMIN, CLIENT)
+- `PUT /api/reservations/{id}/cancel` - Annulation d'une réservation (ADMIN, CLIENT propriétaire)
 
-- **Inscription & Connexion** (rôle client par défaut)
-- **Gestion des utilisateurs** (admin)
-- **Gestion des ressources** (admin)
-- **Réservation de ressources** (client/admin)
-- **Annulation de réservation** (client/admin)
-- **Nettoyage automatique des réservations expirées** (scheduler)
-- **Documentation Swagger** (API interactive)
-- **Sécurité** : Authentification, rôles, accès restreint
-- **Gestion de la concurrence** : Empêche les conflits de réservation
+## Sécurité
 
----
+- Authentification basée sur Spring Security (Basic Auth et Form Login)
+- Autorisations basées sur les rôles (ADMIN, CLIENT)
+- Protection contre les conflits de réservation avec gestion de concurrence
 
-## ⚠️ Problème de Concurrence & Solution
-
-### Problème
-Plusieurs utilisateurs peuvent tenter de réserver la même ressource au même moment, ce qui peut provoquer des conflits (double réservation).
-
-### Solution technique
-- **Vérrouillage (synchronisation)** : La méthode de réservation est synchronisée pour éviter les accès concurrents.
-- **Sémaphore** : Limite le nombre d'accès simultanés à la section critique.
-- **Vérification de conflit** : Avant chaque réservation, le service vérifie qu'aucune réservation existante ne chevauche la période demandée.
-
-**Extrait de code :**
-```java
-public synchronized ReservationDTO reserver(ReservationDTO dto) throws Exception {
-    semaphore.acquire();
-    try {
-        // Vérification de conflit
-        boolean conflit = reservationRepository.existsByResourceAndDateDebutLessThanEqualAndDateFinGreaterThanEqual(
-                resource, dto.getDateFin(), dto.getDateDebut());
-        if (conflit) {
-            throw new IllegalStateException("Conflit de réservation détecté !");
-        }
-        // Création de la réservation
-    } finally {
-        semaphore.release();
-    }
-}
-```
-
----
-
-## 🛠️ Technologies & Outils
-
-- **Backend** : Spring Boot 3, Spring Data JPA, Spring Security, Spring Scheduler
-- **Base de données** : MySQL (XAMPP ou autre)
-- **Documentation** : Swagger (springdoc-openapi)
-- **Lombok** : Réduction du code boilerplate
-- **Gestion de la concurrence** : Java Concurrency (synchronized, Semaphore)
-- **Tests** : JUnit (à compléter)
-- **Gestion des exceptions** : @RestControllerAdvice
-
----
-
-## ⚙️ Installation & Exécution
+## Installation et démarrage
 
 ### Prérequis
-- Java 17+
+
+- Java 17 ou supérieur
 - Maven
-- MySQL (XAMPP conseillé)
-- (Optionnel) Postman ou Swagger UI pour tester l'API
+- MySQL
 
-### Configuration de la base de données
+### Configuration
 
-Dans `src/main/resources/application.properties` :
-```
-# Configuration MySQL (XAMPP)
-spring.datasource.url=jdbc:mysql://localhost:3306/ranblanc_db?characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
+Modifier le fichier `application.properties` pour configurer la base de données et les paramètres JWT :
+
+```properties
+# Database Configuration
+spring.datasource.url=jdbc:mysql://localhost:3306/ranblanc
 spring.datasource.username=root
-spring.datasource.password=
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
-# JPA/Hibernate
+spring.datasource.password=password
 spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
-
-# Encodage UTF-8 (optionnel, déjà couvert par l'URL)
-spring.datasource.hikari.connection-init-sql=SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci
 ```
 
-### Lancer l'application
+### Compilation et exécution
 
 ```bash
-mvn clean install
-mvn spring-boot:run
+# Compiler le projet
+mvn clean package
+
+# Exécuter l'application
+java -jar target/blanc-0.0.1-SNAPSHOT.jar
 ```
 
-### Accéder à la documentation API
+L'application sera accessible à l'adresse : http://localhost:8080
 
-- Swagger UI : [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+La documentation Swagger sera disponible à : http://localhost:8080/swagger-ui.html
 
-### Comptes de test
+## Licence
 
-- **Administrateur**
-    - email : `admin@ranblanc.com`
-    - mot de passe : `admin123`
-- **Client**
-    - email : `client@ranblanc.com`
-    - mot de passe : `client123`
-
----
-
-## 📚 Exemples d'utilisation de l'API
-
-- **Inscription** : `POST /api/users/register`  
-  Body : `{ "nom": "Jean", "email": "jean@email.com", "password": "monmotdepasse" }`
-- **Connexion** : Basic Auth ou `POST /api/users/login`
-- **Réserver une ressource** : `POST /api/reservations`
-- **Annuler une réservation** : `DELETE /api/reservations/{id}`
-
----
-
-## 📈 Évolutions possibles
-
-- Ajout d'un front-end (Angular, React)
-- Notifications email
-- Gestion avancée des rôles
-- Statistiques d'utilisation
-
----
-
-## 🏷️ Licence
-
-Projet open-source, usage libre pour l'éducation et la démonstration.
+Ce projet est sous licence [MIT](LICENSE).
